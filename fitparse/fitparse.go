@@ -10,11 +10,17 @@ type FitFile struct {
 	FileHeader *FileHeader
 }
 
-func NewParser(fp *os.File) (*FitFile, error) {
-	return &FitFile{
+func NewFitFile(fp *os.File) (*FitFile, error) {
+	ff := &FitFile{
 		fp: fp,
 		FileHeader: &FileHeader{},
-	}, nil
+	}
+
+	err := ff.Parse()
+	if err != nil {
+		return nil, err
+	}
+	return ff, nil
 }
 
 func (fit *FitFile) Parse() error {
@@ -24,5 +30,8 @@ func (fit *FitFile) Parse() error {
 	if err != nil {
 		return err
 	}
+	rh, err := fit.ReadRecordHeader()
+	fmt.Println(rh)
+
 	return nil
 }
