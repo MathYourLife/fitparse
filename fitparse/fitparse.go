@@ -1,6 +1,7 @@
 package fitparse
 
 import(
+	"errors"
 	"fmt"
 	"os"
 )
@@ -33,5 +34,10 @@ func (fit *FitFile) Parse() error {
 	rh, err := fit.ReadRecordHeader()
 	fmt.Println(rh)
 
+	if rh.MessageType {
+		fmt.Println(fit.ReadDefinition())
+	} else {
+		return errors.New("Not yet implemented")
+	}
 	return nil
 }
