@@ -1,7 +1,6 @@
 package fitparse
 
 import(
-	"errors"
 	"fmt"
 	"os"
 )
@@ -9,12 +8,14 @@ import(
 type FitFile struct {
 	fp *os.File
 	FileHeader *FileHeader
+	LocalMsgTypes map[uint8]*Definition
 }
 
 func NewFitFile(fp *os.File) (*FitFile, error) {
 	ff := &FitFile{
 		fp: fp,
 		FileHeader: &FileHeader{},
+		LocalMsgTypes: map[uint8]*Definition{},
 	}
 
 	err := ff.Parse()
@@ -31,13 +32,27 @@ func (fit *FitFile) Parse() error {
 	if err != nil {
 		return err
 	}
-	rh, err := fit.ReadRecordHeader()
-	fmt.Println(rh)
 
-	if rh.MessageType {
-		fmt.Println(fit.ReadDefinition())
-	} else {
-		return errors.New("Not yet implemented")
+	for i:=0; i<3; i++ {
+		rh, err := fit.ReadRecordHeader()
+		if err != nil {
+			return err
+		}
+		fmt.Printf("%v\n",rh.Type)
+		fmt.Printf("%v\n",rh.DataMsgType)
+		fmt.Printf("%#v\n", rh)
+
+		if rh.Type == RECORDHEADER_DEFINITION {
+			def, err := fit.ReadDefinition()
+			if err != nil {
+				return err
+			}
+			fit.LocalMsgTypes[rh.LocalMessageId] = def
+			fmt.Printf("%#v\n", def)
+			fmt.Printf("Global Message Number: %d\n", def.GlobalMessageNum)
+		} else {
+			fit.ReadData(fit.LocalMsgTypes[rh.LocalMessageId])
+		}
 	}
 	return nil
 }
